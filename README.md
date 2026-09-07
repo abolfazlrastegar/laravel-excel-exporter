@@ -1,4 +1,4 @@
-![alt text](https://github.com/abolfazlrastegar/laravel-payments/blob/main/laravel-excel-exporter.png?raw=true)
+![alt text](https://github.com/abolfazlrastegar/laravel-excel-exporter/blob/main/laravel-excel-exporter.png?raw=true)
 
 
 # Laravel Excel Exporter
