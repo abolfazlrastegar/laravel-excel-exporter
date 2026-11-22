@@ -32,6 +32,11 @@ final class ExcelBuilder
 
     protected string $type = 'xlsx';
 
+    public function __construct()
+    {
+        $this->chunkSize = max(1, (int) config('excel-exporter.chunk_size', 2000));
+    }
+
     public function from(
         mixed $data
     ): static {
@@ -167,6 +172,51 @@ final class ExcelBuilder
 
         $path = $this->makeTemporaryPath();
 
+        try {
+            $this->writeToPath($path);
+        } catch (\\Throwable $exception) {
+            if (is_file($path)) {
+                @unlink($path);
+            }
+
+            throw $exception;
+        }
+
+        return response()
+            ->download($path, $this->downloadFilename())
+            ->deleteFileAfterSend(true);
+    }
+
+    public function store(string $path, ?string $disk = null): bool
+    {
+        $this->validate();
+
+        $temporaryPath = $this->makeTemporaryPath();
+
+        try {
+            $this->writeToPath($temporaryPath);
+
+            $stream = fopen($temporaryPath, 'rb');
+
+            if ($stream === false) {
+                throw new \\RuntimeException('Unable to open the generated export file.');
+            }
+
+            try {
+                return Storage::disk($disk ?? config('excel-exporter.disk', 'local'))
+                    ->put($path, $stream);
+            } finally {
+                fclose($stream);
+            }
+        } finally {
+            if (is_file($temporaryPath)) {
+                @unlink($temporaryPath);
+            }
+        }
+    }
+
+    protected function writeToPath(string $path): void
+    {
         $data = $this->data();
 
         if ($this->type === 'csv') {
@@ -201,13 +251,13 @@ final class ExcelBuilder
                 autoSize: $this->autoSize,
             );
         }
+    }
 
-        return response()
-            ->download(
-                $path,
-                $this->filename
-            )
-            ->deleteFileAfterSend(true);
+    protected function downloadFilename(): string
+    {
+        $filename = basename(str_replace('\\\\', '/', $this->filename));
+
+        return $filename !== '' ? $filename : 'export.' . $this->type;
     }
 
     protected function data(): iterable
@@ -227,7 +277,7 @@ final class ExcelBuilder
             $this->data instanceof EloquentBuilder ||
             $this->data instanceof QueryBuilder
         ) {
-            return $this->data->cursor();
+            return $this->data->lazy($this->chunkSize);
         }
 
         if ($this->data instanceof \Illuminate\Support\Collection) {
@@ -272,24 +322,19 @@ final class ExcelBuilder
     protected function makeTemporaryPath(): string
     {
         $directory = storage_path(
-            'app/' .
-            config(
-                'excel-exporter.temporary_directory',
-                'excel-exporter'
-            )
+            'app/' . trim(config('excel-exporter.temporary_directory', 'excel-exporter'), '/\\\\')
         );
 
-        if (! is_dir($directory)) {
-            mkdir(
-                $directory,
-                0755,
-                true
-            );
+        if (! is_dir($directory) && ! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+            throw new \\RuntimeException("Unable to create export temporary directory: {$directory}");
         }
 
-        return $directory . '/' . uniqid(
-                'export_',
-                true
-            ) . '_' . $this->filename;
+        $path = tempnam($directory, 'export_');
+
+        if ($path === false) {
+            throw new \\RuntimeException("Unable to create a temporary export file in: {$directory}");
+        }
+
+        return $path;
     }
 }
