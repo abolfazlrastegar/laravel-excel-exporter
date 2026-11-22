@@ -1,6 +1,6 @@
 <?php
 
-namespace Abolfazrastegar\LaravelExcelExporter\Writer;
+namespace Abolfazrastegar\LaravelExcelExporter\Writers;
 
 use Abolfazrastegar\LaravelExcelExporter\ExcelColumn;
 use DateTimeInterface;
