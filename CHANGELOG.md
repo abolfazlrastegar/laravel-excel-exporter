@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file.
 
-## [1.0.1] - Unreleased
+## [1.0.1] - 2026-11-22
 
 ### Fixed
 - Corrected the XLSX writer namespace so Composer autoloading resolves the writer.
