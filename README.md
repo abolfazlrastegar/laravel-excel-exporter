@@ -23,7 +23,6 @@ Built on top of [PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet), t
 * XLSX files
 * CSV files
 * Large datasets
-* Queue-based exports
 * RTL / Persian Excel files
 
 ---
@@ -680,7 +679,7 @@ return ARExcel::make()
     ->download();
 ```
 
-The exporter uses a cursor for Eloquent and Query Builder sources, which prevents the complete query result from being loaded into a PHP array.
+The exporter uses Laravel's chunked lazy iteration for Eloquent and Query Builder sources. This keeps memory bounded and allows Eloquent eager-loaded relationships to be resolved per chunk.
 
 > XLSX generation still uses PhpSpreadsheet and therefore can consume significant memory for extremely large files. For very large datasets, prefer CSV with a Query Builder source. Rows are written incrementally to a temporary file.
 
@@ -1099,6 +1098,8 @@ composer test
 ---
 
 # Security
+
+CSV values that begin with spreadsheet formula markers are prefixed to reduce CSV formula-injection risk. XLSX text values are written as explicit strings rather than formulas.
 
 If you discover a security vulnerability, please do not open a public issue.
 
