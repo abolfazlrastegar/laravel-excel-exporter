@@ -1,6 +1,6 @@
 <?php
 
-namespace Abolfazrastegar\LaravelExcelExporter\tests;
+namespace Abolfazrastegar\LaravelExcelExporter\Tests;
 
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
