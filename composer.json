@@ -15,7 +15,9 @@
         "phpoffice/phpspreadsheet": "^5.9"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0|^11.0|^12.0"
+        "phpunit/phpunit": "^10.0|^11.0|^12.0",
+        "orchestra/testbench": "^10.0|^11.0",
+        "maennchen/zipstream-php": "^2.1"
     },
     "autoload": {
         "psr-4": {

@@ -1,9 +1,10 @@
 <?php
 
-namespace Abolfazrastegar\LaravelExcelExporter\Writer;
+namespace Abolfazrastegar\LaravelExcelExporter\Writers;
 
 use Abolfazrastegar\LaravelExcelExporter\ExcelColumn;
 use DateTimeInterface;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -77,13 +78,11 @@ final class XlsxWriter
             $autoSize
         );
 
-        $writer = new Xlsx($spreadsheet);
-
-        $writer->save($path);
-
-        $spreadsheet->disconnectWorksheets();
-
-        unset($spreadsheet);
+        try {
+            (new Xlsx($spreadsheet))->save($path);
+        } finally {
+            $spreadsheet->disconnectWorksheets();
+        }
 
         return $path;
     }
@@ -115,10 +114,15 @@ final class XlsxWriter
                 $column->format
             );
 
-            $sheet->setCellValue(
-                $this->columnLetter($index + 1) . $row,
-                $value
-            );
+            $cell = $this->columnLetter($index + 1) . $row;
+
+            if (is_string($value)) {
+                $sheet->setCellValueExplicit($cell, $value, DataType::TYPE_STRING);
+
+                continue;
+            }
+
+            $sheet->setCellValue($cell, $value);
         }
     }
 

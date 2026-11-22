@@ -44,9 +44,8 @@ final class CsvWriter
                 foreach ($columns as $column) {
                     $value = $column->resolve($item);
 
-                    $row[] = $this->formatValue(
-                        $value,
-                        $column->format
+                    $row[] = $this->sanitizeSpreadsheetFormula(
+                        $this->formatValue($value, $column->format)
                     );
                 }
 
@@ -63,6 +62,15 @@ final class CsvWriter
         }
 
         return $path;
+    }
+
+    protected function sanitizeSpreadsheetFormula(mixed $value): mixed
+    {
+        if (is_string($value) && preg_match('/^[\\t\\r\\n ]*[=+\\-@]/u', $value) === 1) {
+            return "'" . $value;
+        }
+
+        return $value;
     }
 
     protected function formatValue(

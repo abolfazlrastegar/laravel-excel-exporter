@@ -23,7 +23,6 @@ Built on top of [PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet), t
 * XLSX files
 * CSV files
 * Large datasets
-* Queue-based exports
 * RTL / Persian Excel files
 
 ---
@@ -53,10 +52,6 @@ Built on top of [PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet), t
 * [Store Exported File](#store-exported-file)
 * [Complete Persian Example](#complete-persian-example)
 * [Large Dataset](#large-dataset)
-* [Streaming CSV](#streaming-csv)
-* [Queue Export](#queue-export)
-* [Queue with Redis](#queue-with-redis)
-* [Export Definition](#export-definition)
 * [Facade](#facade)
 * [Available Methods](#available-methods)
 
@@ -78,12 +73,11 @@ Built on top of [PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet), t
 * [Laravel Compatibility](#laravel-compatibility)
 * [Architecture](#architecture)
 * [Performance Recommendations](#performance-recommendations)
-* [Error Handling](#error-handling)
 * [Contributing](#contributing)
 * [Security](#security)
 * [License](#license)
 * [Author](#author)
-* [Changelog](#changelog)
+* [Changelog](CHANGELOG.md)
 * [Roadmap](#roadmap)
 * [Support the Project](#-support-the-project)
 
@@ -381,7 +375,7 @@ return ARExcel::make()
     ->download();
 ```
 
-Auto-size is enabled by default.
+Auto-size is disabled by default to avoid expensive width calculations on large datasets.
 
 To disable it:
 
@@ -685,174 +679,9 @@ return ARExcel::make()
     ->download();
 ```
 
-The exporter uses a cursor for Eloquent and Query Builder sources, which prevents the complete query result from being loaded into a PHP array.
+The exporter uses Laravel's chunked lazy iteration for Eloquent and Query Builder sources. This keeps memory bounded and allows Eloquent eager-loaded relationships to be resolved per chunk.
 
-> XLSX generation still uses PhpSpreadsheet and therefore can consume significant memory for extremely large files. For very large datasets, CSV + streaming + queue is recommended.
-
----
-
-# Streaming CSV
-
-For very large exports, CSV is generally a better choice.
-
-```php
-return ARExcel::make()
-    ->from(
-        User::query()
-            ->orderBy('id')
-    )
-    ->columns([
-        'id' => 'شناسه',
-        'name' => 'نام',
-        'email' => 'ایمیل',
-    ])
-    ->csv()
-    ->filename('users.csv')
-    ->download();
-```
-
-CSV is particularly useful when exporting hundreds of thousands or millions of records.
-
----
-
-# Queue Export
-
-For long-running exports, use Laravel queues.
-
-First create an export definition:
-
-```php
-namespace App\Exports;
-
-use App\Models\User;
-use Abolfazrastegar\LaravelExcelExporter\Contracts\ExportDefinition;
-
-final class UsersExport implements ExportDefinition
-{
-    public function query(): mixed
-    {
-        return User::query()
-            ->with('role')
-            ->orderBy('id');
-    }
-
-    public function columns(): array
-    {
-        return [
-            'id' => [
-                'title' => 'شناسه',
-                'width' => 10,
-            ],
-
-            'name' => [
-                'title' => 'نام',
-                'width' => 30,
-            ],
-
-            'email' => [
-                'title' => 'ایمیل',
-                'width' => 40,
-            ],
-
-            'role.name' => [
-                'title' => 'نقش',
-                'width' => 20,
-            ],
-        ];
-    }
-}
-```
-
-Then dispatch the export:
-
-```php
-use ARExcel;
-use App\Exports\UsersExport;
-
-ARExcel::queue(
-    UsersExport::class,
-    'exports/users.xlsx',
-    'public',
-    'xlsx'
-);
-```
-
-For CSV:
-
-```php
-ARExcel::queue(
-    UsersExport::class,
-    'exports/users.csv',
-    'public',
-    'csv'
-);
-```
-
-Make sure Laravel's queue worker is running:
-
-```bash
-php artisan queue:work
-```
-
----
-
-# Queue with Redis
-
-If your Laravel application uses Redis:
-
-```env
-QUEUE_CONNECTION=redis
-```
-
-Then:
-
-```bash
-php artisan queue:work redis
-```
-
-The export will be processed by the queue worker instead of blocking the HTTP request.
-
----
-
-# Export Definition
-
-For reusable exports, use `ExportDefinition`.
-
-```php
-namespace App\Exports;
-
-use App\Models\Order;
-use Abolfazrastegar\LaravelExcelExporter\Contracts\ExportDefinition;
-
-final class OrdersExport implements ExportDefinition
-{
-    public function query(): mixed
-    {
-        return Order::query()
-            ->with([
-                'user',
-                'product',
-            ])
-            ->orderBy('id');
-    }
-
-    public function columns(): array
-    {
-        return [
-            'id' => 'شماره سفارش',
-            'user.name' => 'مشتری',
-            'product.title' => 'محصول',
-            'amount' => 'مبلغ',
-            'created_at' => [
-                'title' => 'تاریخ',
-                'format' => 'datetime',
-            ],
-        ];
-    }
-}
-```
-
-This approach is recommended for exports that are reused or executed through queues.
+> XLSX generation still uses PhpSpreadsheet and therefore can consume significant memory for extremely large files. For very large datasets, prefer CSV with a Query Builder source. Rows are written incrementally to a temporary file.
 
 ---
 
@@ -1197,27 +1026,10 @@ ExcelBuilder
    ├── XlsxWriter
    │      └── PhpSpreadsheet
    │
-   ├── CsvWriter
-   │
-   └── StreamingCsvWriter
+   └── CsvWriter
 ```
 
-Queue exports use:
-
-```text
-ExportDefinition
-       │
-       ▼
-    ExportJob
-       │
-       ▼
- ExcelExportService
-       │
-       ▼
- ExcelBuilder
-```
-
-This keeps the export API independent from Laravel controllers.
+The builder keeps the export API independent from Laravel controllers.
 
 ---
 
@@ -1233,12 +1045,6 @@ For very large datasets:
 
 ```php
 ->csv()
-```
-
-For long-running exports:
-
-```php
-ARExcel::queue(...)
 ```
 
 Recommended architecture:
@@ -1258,49 +1064,9 @@ Large Dataset
 
 Very Large Dataset
      │
-     ├── CSV
-     ├── Streaming
-     └── Queue
-```
-
----
-
-# Error Handling
-
-The package provides custom exceptions.
-
-```php
-use Abolfazrastegar\LaravelExcelExporter\Exceptions\ExportException;
-use Abolfazrastegar\LaravelExcelExporter\Exceptions\InvalidExportDataException;
-```
-
-Example:
-
-```php
-try {
-    return ARExcel::make()
-        ->from(User::query())
-        ->columns([
-            'id' => 'ID',
-            'name' => 'Name',
-        ])
-        ->xlsx()
-        ->download();
-
-} catch (InvalidExportDataException $e) {
-    report($e);
-
-    return response()->json([
-        'message' => $e->getMessage(),
-    ], 422);
-
-} catch (ExportException $e) {
-    report($e);
-
-    return response()->json([
-        'message' => 'Export failed.',
-    ], 500);
-}
+     └── CSV
+          │
+          └── Incremental file writing
 ```
 
 ---
@@ -1331,6 +1097,8 @@ composer test
 
 # Security
 
+CSV values that begin with spreadsheet formula markers are prefixed to reduce CSV formula-injection risk. XLSX text values are written as explicit strings rather than formulas.
+
 If you discover a security vulnerability, please do not open a public issue.
 
 Contact the maintainer directly.
@@ -1348,12 +1116,6 @@ This package is open-sourced software licensed under the [MIT license](LICENSE).
 **Abolfazl Rastegar**
 
 * Email: [abolfazlrastegar1996@gmail.com](mailto:abolfazlrastegar1996@gmail.com)
-
----
-
-# Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for the complete changelog.
 
 ---
 

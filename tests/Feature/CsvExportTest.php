@@ -1,46 +1,23 @@
 <?php
 
-namespace Abolfazrastegar\LaravelExcelExporter\tests\Feature;
+namespace Abolfazrastegar\LaravelExcelExporter\Tests\Feature;
 
 use Abolfazrastegar\LaravelExcelExporter\ExcelExportService;
-use Abolfazrastegar\LaravelExcelExporter\tests\TestCase;
+use Abolfazrastegar\LaravelExcelExporter\Tests\TestCase;
+use Illuminate\Support\Facades\Storage;
 
 class CsvExportTest extends TestCase
 {
     public function test_csv_file_can_be_created(): void
     {
-        $path = storage_path(
-            'app/excel-exporter-tests/users.csv'
-        );
+        Storage::fake('local');
 
-        if (file_exists($path)) {
-            unlink($path);
-        }
-
-        $directory = dirname($path);
-
-        if (! is_dir($directory)) {
-            mkdir(
-                $directory,
-                0755,
-                true
-            );
-        }
-
-        $builder = app(
-            ExcelExportService::class
-        )->make();
+        $builder = app(ExcelExportService::class)->make();
 
         $builder
             ->from([
-                [
-                    'id' => 1,
-                    'name' => 'Abolfazl',
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Ali',
-                ],
+                ['id' => 1, 'name' => 'Abolfazl'],
+                ['id' => 2, 'name' => 'Ali'],
             ])
             ->columns([
                 'id' => 'شناسه',
@@ -49,23 +26,13 @@ class CsvExportTest extends TestCase
             ->csv()
             ->filename('users.csv');
 
-        $builder->store(
-            'users.csv',
-            'local'
-        );
+        $builder->store('users.csv', 'local');
 
-        $this->assertFileExists($path);
+        Storage::disk('local')->assertExists('users.csv');
 
-        $content = file_get_contents($path);
+        $content = Storage::disk('local')->get('users.csv');
 
-        $this->assertStringContainsString(
-            'شناسه',
-            $content
-        );
-
-        $this->assertStringContainsString(
-            'Abolfazl',
-            $content
-        );
+        $this->assertStringContainsString('شناسه', $content);
+        $this->assertStringContainsString('Abolfazl', $content);
     }
 }

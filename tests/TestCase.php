@@ -1,8 +1,9 @@
 <?php
-namespace Abolfazrastegar\LaravelExcelExporter\tests;
 
-use Orchestra\Testbench\TestCase as Orchestra;
+namespace Abolfazrastegar\LaravelExcelExporter\Tests;
+
 use Abolfazrastegar\LaravelExcelExporter\ExcelServiceProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra
 {
@@ -15,15 +16,7 @@ abstract class TestCase extends Orchestra
 
     protected function getEnvironmentSetUp($app): void
     {
-        $app['config']->set(
-            'excel-exporter.chunk_size',
-            100
-        );
-
-        $app['config']->set(
-            'excel-exporter.temporary_directory',
-            'excel-exporter-tests'
-        );
+        $app['config']->set('excel-exporter.chunk_size', 100);
+        $app['config']->set('excel-exporter.temporary_directory', 'excel-exporter-tests');
     }
-
 }

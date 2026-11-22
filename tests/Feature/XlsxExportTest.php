@@ -1,44 +1,31 @@
 <?php
 
-namespace Abolfazrastegar\LaravelExcelExporter\tests\Feature;
+namespace Abolfazrastegar\LaravelExcelExporter\Tests\Feature;
 
 use Abolfazrastegar\LaravelExcelExporter\ExcelExportService;
-use Abolfazrastegar\LaravelExcelExporter\tests\TestCase;
+use Abolfazrastegar\LaravelExcelExporter\Tests\TestCase;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use ZipArchive;
 
 class XlsxExportTest extends TestCase
 {
     public function test_xlsx_file_can_be_created(): void
     {
-        $path = storage_path(
-            'app/excel-exporter-tests/users.xlsx'
-        );
+        Storage::fake('local');
 
-        if (file_exists($path)) {
-            unlink($path);
-        }
-
-        $builder = app(
-            ExcelExportService::class
-        )->make();
+        $builder = app(ExcelExportService::class)->make();
 
         $builder
             ->from([
-                [
-                    'id' => 1,
-                    'name' => 'Abolfazl',
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Ali',
-                ],
+                ['id' => 1, 'name' => 'Abolfazl'],
+                ['id' => 2, 'name' => 'Ali'],
             ])
             ->columns([
                 'id' => [
                     'title' => 'شناسه',
                     'width' => 10,
                 ],
-
                 'name' => [
                     'title' => 'نام',
                     'width' => 30,
@@ -49,31 +36,24 @@ class XlsxExportTest extends TestCase
             ->filter()
             ->xlsx();
 
-        $builder->store(
-            'users.xlsx',
-            'local'
-        );
+        $builder->store('users.xlsx', 'local');
 
-        $this->assertFileExists($path);
+        Storage::disk('local')->assertExists('users.xlsx');
 
-        $spreadsheet = IOFactory::load($path);
-
+        $spreadsheet = IOFactory::load(Storage::disk('local')->path('users.xlsx'));
         $sheet = $spreadsheet->getActiveSheet();
 
-        $this->assertSame(
-            'شناسه',
-            $sheet->getCell('A1')->getValue()
-        );
-
-        $this->assertSame(
-            'Abolfazl',
-            $sheet->getCell('B2')->getValue()
-        );
-
-        $this->assertTrue(
-            $sheet->isRightToLeft()
-        );
-
+        $this->assertSame('شناسه', $sheet->getCell('A1')->getValue());
+        $this->assertSame('Abolfazl', $sheet->getCell('B2')->getValue());
         $spreadsheet->disconnectWorksheets();
+
+        $archive = new ZipArchive();
+        $this->assertSame(true, $archive->open(Storage::disk('local')->path('users.xlsx')));
+
+        $worksheetXml = $archive->getFromName('xl/worksheets/sheet1.xml');
+        $archive->close();
+
+        $this->assertIsString($worksheetXml);
+        $this->assertStringContainsString('rightToLeft="true"', $worksheetXml);
     }
 }
