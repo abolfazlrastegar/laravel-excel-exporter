@@ -53,10 +53,6 @@ Built on top of [PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet), t
 * [Store Exported File](#store-exported-file)
 * [Complete Persian Example](#complete-persian-example)
 * [Large Dataset](#large-dataset)
-* [Streaming CSV](#streaming-csv)
-* [Queue Export](#queue-export)
-* [Queue with Redis](#queue-with-redis)
-* [Export Definition](#export-definition)
 * [Facade](#facade)
 * [Available Methods](#available-methods)
 
@@ -78,7 +74,6 @@ Built on top of [PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet), t
 * [Laravel Compatibility](#laravel-compatibility)
 * [Architecture](#architecture)
 * [Performance Recommendations](#performance-recommendations)
-* [Error Handling](#error-handling)
 * [Contributing](#contributing)
 * [Security](#security)
 * [License](#license)
@@ -381,7 +376,7 @@ return ARExcel::make()
     ->download();
 ```
 
-Auto-size is enabled by default.
+Auto-size is disabled by default to avoid expensive width calculations on large datasets.
 
 To disable it:
 
@@ -688,30 +683,6 @@ return ARExcel::make()
 The exporter uses a cursor for Eloquent and Query Builder sources, which prevents the complete query result from being loaded into a PHP array.
 
 > XLSX generation still uses PhpSpreadsheet and therefore can consume significant memory for extremely large files. For very large datasets, CSV + streaming + queue is recommended.
-
----
-
-# Streaming CSV
-
-For very large exports, CSV is generally a better choice.
-
-```php
-return ARExcel::make()
-    ->from(
-        User::query()
-            ->orderBy('id')
-    )
-    ->columns([
-        'id' => 'شناسه',
-        'name' => 'نام',
-        'email' => 'ایمیل',
-    ])
-    ->csv()
-    ->filename('users.csv')
-    ->download();
-```
-
-CSV is particularly useful when exporting hundreds of thousands or millions of records.
 
 ---
 
