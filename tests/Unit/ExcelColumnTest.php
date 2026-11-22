@@ -1,8 +1,8 @@
 <?php
 
-namespace Abolfazrastegar\LaravelExcelExporter\tests\Unit;
+namespace Abolfazrastegar\LaravelExcelExporter\Tests\Unit;
 
-use Abolfazrastegar\LaravelExcelExporter\tests\TestCase;
+use Abolfazrastegar\LaravelExcelExporter\Tests\TestCase;
 use Abolfazrastegar\LaravelExcelExporter\ExcelColumn;
 class ExcelColumnTest extends TestCase
 {
