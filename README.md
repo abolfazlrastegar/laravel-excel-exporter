@@ -682,7 +682,7 @@ return ARExcel::make()
 
 The exporter uses a cursor for Eloquent and Query Builder sources, which prevents the complete query result from being loaded into a PHP array.
 
-> XLSX generation still uses PhpSpreadsheet and therefore can consume significant memory for extremely large files. For very large datasets, CSV + streaming + queue is recommended.
+> XLSX generation still uses PhpSpreadsheet and therefore can consume significant memory for extremely large files. For very large datasets, prefer CSV with a Query Builder source. Rows are written incrementally to a temporary file.
 
 ---
 
@@ -1029,25 +1029,10 @@ ExcelBuilder
    │
    ├── CsvWriter
    │
-   └── StreamingCsvWriter
+   └── CsvWriter
 ```
 
-Queue exports use:
-
-```text
-ExportDefinition
-       │
-       ▼
-    ExportJob
-       │
-       ▼
- ExcelExportService
-       │
-       ▼
- ExcelBuilder
-```
-
-This keeps the export API independent from Laravel controllers.
+The builder keeps the export API independent from Laravel controllers.
 
 ---
 
@@ -1063,12 +1048,6 @@ For very large datasets:
 
 ```php
 ->csv()
-```
-
-For long-running exports:
-
-```php
-ARExcel::queue(...)
 ```
 
 Recommended architecture:
@@ -1088,9 +1067,9 @@ Large Dataset
 
 Very Large Dataset
      │
-     ├── CSV
-     ├── Streaming
-     └── Queue
+     └── CSV
+          │
+          └── Incremental file writing
 ```
 
 ---
