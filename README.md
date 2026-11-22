@@ -77,6 +77,7 @@ Built on top of [PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet), t
 * [Security](#security)
 * [License](#license)
 * [Author](#author)
+* [Changelog](CHANGELOG.md)
 * [Roadmap](#roadmap)
 * [Support the Project](#-support-the-project)
 
@@ -1024,8 +1025,6 @@ ExcelBuilder
    │
    ├── XlsxWriter
    │      └── PhpSpreadsheet
-   │
-   ├── CsvWriter
    │
    └── CsvWriter
 ```
