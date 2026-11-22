@@ -5,6 +5,7 @@ use Abolfazrastegar\LaravelExcelExporter\Writers\CsvWriter;
 use Abolfazrastegar\LaravelExcelExporter\Writers\XlsxWriter;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 final class ExcelBuilder
@@ -174,7 +175,7 @@ final class ExcelBuilder
 
         try {
             $this->writeToPath($path);
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             if (is_file($path)) {
                 @unlink($path);
             }
@@ -199,7 +200,7 @@ final class ExcelBuilder
             $stream = fopen($temporaryPath, 'rb');
 
             if ($stream === false) {
-                throw new \\RuntimeException('Unable to open the generated export file.');
+                throw new \RuntimeException('Unable to open the generated export file.');
             }
 
             try {
@@ -255,7 +256,7 @@ final class ExcelBuilder
 
     protected function downloadFilename(): string
     {
-        $filename = basename(str_replace('\\\\', '/', $this->filename));
+        $filename = basename(str_replace('\\', '/', $this->filename));
 
         return $filename !== '' ? $filename : 'export.' . $this->type;
     }
@@ -322,17 +323,17 @@ final class ExcelBuilder
     protected function makeTemporaryPath(): string
     {
         $directory = storage_path(
-            'app/' . trim(config('excel-exporter.temporary_directory', 'excel-exporter'), '/\\\\')
+            'app/' . trim(config('excel-exporter.temporary_directory', 'excel-exporter'), '/\\')
         );
 
         if (! is_dir($directory) && ! mkdir($directory, 0755, true) && ! is_dir($directory)) {
-            throw new \\RuntimeException("Unable to create export temporary directory: {$directory}");
+            throw new \RuntimeException("Unable to create export temporary directory: {$directory}");
         }
 
         $path = tempnam($directory, 'export_');
 
         if ($path === false) {
-            throw new \\RuntimeException("Unable to create a temporary export file in: {$directory}");
+            throw new \RuntimeException("Unable to create a temporary export file in: {$directory}");
         }
 
         return $path;
