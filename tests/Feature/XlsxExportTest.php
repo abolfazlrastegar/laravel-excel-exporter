@@ -6,6 +6,7 @@ use Abolfazrastegar\LaravelExcelExporter\ExcelExportService;
 use Abolfazrastegar\LaravelExcelExporter\Tests\TestCase;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use ZipArchive;
 
 class XlsxExportTest extends TestCase
 {
@@ -44,8 +45,15 @@ class XlsxExportTest extends TestCase
 
         $this->assertSame('شناسه', $sheet->getCell('A1')->getValue());
         $this->assertSame('Abolfazl', $sheet->getCell('B2')->getValue());
-        $this->assertTrue($sheet->getSheetView()->getRightToLeft());
-
         $spreadsheet->disconnectWorksheets();
+
+        $archive = new ZipArchive();
+        $this->assertSame(true, $archive->open(Storage::disk('local')->path('users.xlsx')));
+
+        $worksheetXml = $archive->getFromName('xl/worksheets/sheet1.xml');
+        $archive->close();
+
+        $this->assertIsString($worksheetXml);
+        $this->assertStringContainsString('rightToLeft="1"', $worksheetXml);
     }
 }
