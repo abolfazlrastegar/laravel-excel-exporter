@@ -1,6 +1,6 @@
 <?php
 
-namespace Abolfazrastegar\LaravelExcelExporter\tests\Unit;
+namespace Abolfazrastegar\LaravelExcelExporter\Tests\Unit;
 
 use Abolfazrastegar\LaravelExcelExporter\ExcelColumn;
 use Abolfazrastegar\LaravelExcelExporter\Writers\XlsxWriter;
