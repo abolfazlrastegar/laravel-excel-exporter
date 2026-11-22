@@ -77,7 +77,6 @@ Built on top of [PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet), t
 * [Security](#security)
 * [License](#license)
 * [Author](#author)
-* [Changelog](#changelog)
 * [Roadmap](#roadmap)
 * [Support the Project](#-support-the-project)
 
@@ -1118,12 +1117,6 @@ This package is open-sourced software licensed under the [MIT license](LICENSE).
 **Abolfazl Rastegar**
 
 * Email: [abolfazlrastegar1996@gmail.com](mailto:abolfazlrastegar1996@gmail.com)
-
----
-
-# Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for the complete changelog.
 
 ---
 
