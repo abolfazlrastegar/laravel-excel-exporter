@@ -1,9 +1,9 @@
 <?php
 
-namespace Abolfazrastegar\LaravelExcelExporter\tests\Feature;
+namespace Abolfazrastegar\LaravelExcelExporter\Tests\Feature;
 
 use Abolfazrastegar\LaravelExcelExporter\ExcelExportService;
-use Abolfazrastegar\LaravelExcelExporter\tests\TestCase;
+use Abolfazrastegar\LaravelExcelExporter\Tests\TestCase;
 
 class CsvExportTest extends TestCase
 {
