@@ -54,6 +54,6 @@ class XlsxExportTest extends TestCase
         $archive->close();
 
         $this->assertIsString($worksheetXml);
-        $this->assertStringContainsString('rightToLeft="1"', $worksheetXml);
+        $this->assertStringContainsString('rightToLeft="true"', $worksheetXml);
     }
 }
