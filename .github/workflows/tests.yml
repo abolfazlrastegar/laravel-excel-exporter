@@ -57,6 +57,7 @@ jobs:
             "illuminate/support:${{ matrix.laravel }}" \
             "orchestra/testbench:${{ matrix.testbench }}" \
             --dev \
+            --with-all-dependencies \
             --no-interaction \
             --prefer-dist
 
