@@ -4,6 +4,7 @@ namespace Abolfazrastegar\LaravelExcelExporter\Writers;
 
 use Abolfazrastegar\LaravelExcelExporter\ExcelColumn;
 use DateTimeInterface;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
