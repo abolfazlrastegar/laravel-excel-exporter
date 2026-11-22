@@ -44,7 +44,7 @@ class XlsxExportTest extends TestCase
 
         $this->assertSame('شناسه', $sheet->getCell('A1')->getValue());
         $this->assertSame('Abolfazl', $sheet->getCell('B2')->getValue());
-        $this->assertTrue($sheet->isRightToLeft());
+        $this->assertTrue($sheet->getSheetView()->getRightToLeft());
 
         $spreadsheet->disconnectWorksheets();
     }
